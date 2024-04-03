@@ -234,7 +234,7 @@ class Garage {
         let currentX = startX;
         let startTime = 0;
 
-        function step(currentTime: number) {
+        const step = (currentTime: number) => {
             let diff = currentTime - startTime;
             startTime = currentTime;
             if (diff > 20) {
