@@ -1,0 +1,67 @@
+.winnersWrapper {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #292929;
+    padding: 10px;
+    &.hidden {
+        display: none;
+    }
+    .btnToGarage {
+        padding: 5px 20px;
+        background-color: #c6f0b7;
+        font-size: 2rem;
+        border-radius: 5px;
+    }
+    .containerWinnersHeader {
+        margin-top: 50px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        .headerWinners {
+            color: #fff;
+            font-size: 3rem;
+            .countWinners {
+                font-size: 3rem;
+            }
+        }
+        .pageNumberWinners {
+            color: #fff;
+            font-size: 3rem;
+        }
+    }
+    .containerTableHeader {
+        margin-top: 30px;
+        td, th {
+            padding: 5px;
+            color: #fff;
+            font-size: 2.5rem;
+            text-align: left;
+        }
+        .row {
+            .carIconTable {
+                svg {
+                    width: 70px;
+                }
+            }
+        }
+        .winsColumn, .bestTimeColumn {
+            cursor: pointer;
+        }
+    }
+    .changePageBtns {
+        margin-top: 40px;
+        display: flex;
+        gap: 10px;
+        .btn {
+            width: 100px;
+            padding: 7px 0;
+            font-size: 1.5rem;
+            border-radius: 5px;
+            background-color: #c6f0b7;
+        }
+        .inactive {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    }
+}
