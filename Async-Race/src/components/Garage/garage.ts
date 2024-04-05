@@ -2,58 +2,103 @@ import carParameters from '../../interfaces/carParameters';
 import getCarsResponse from '../../interfaces/getCarsResponse';
 import winnersResponse from '../../interfaces/winnersResponse';
 import APIService from '../../services/APIService';
+import CreateElement from '../../utils/createElement';
 import generateCarInstances from '../../utils/generateCarInstances';
 import Winners from '../Winners/winners';
-import CreateViewGarage from './createViewGarage';
+import BtnToWinners from './components/btnToWinners';
+import ChangePageBtns from './components/changePageBtns';
+import ContainerGarageHeader from './components/containerGarageHeader';
+import ControlsBtns from './components/controlsBtns';
+import CreateCar from './components/createCar';
+import CreateCarBlock from './components/createCarBlock';
+import UpdateCarBlock from './components/updateCarBlock';
+import WinnerMessage from './components/winnerMessage';
 import './garage.scss';
 
 class Garage {
-    private static APIService = new APIService();
+    private APIService = new APIService();
 
-    private static currentPage = 1;
+    private currentPage = 1;
 
-    private static carsPerPage: number = 7;
+    private carsPerPage: number = 7;
 
-    private static animationId: Map<string, number> = new Map();
+    private animationId: Map<string, number> = new Map();
 
-    private static isThereWinner: boolean = true;
+    private isThereWinner: boolean = true;
 
-    static create(): void {
-        const createView = new CreateViewGarage();
-        createView.create();
-        Garage.getCars();
+    public create(): void {
+        this.createView();
+        this.getCars();
     }
 
-    static async getCars() {
-        try {
-            const response: Response = await Garage.APIService.getCars(Garage.currentPage, Garage.carsPerPage);
-            const cars: getCarsResponse[] = await response.json();
-            const totalCars = response.headers.get('X-Total-Count') as string;
-            cars.forEach((car) => {
-                CreateViewGarage.createCar(car.name, car.color, car.id as number);
-            });
-            Garage.nextAndPrevVisability(totalCars);
-            Garage.setCarCount(totalCars);
-        }
-        catch(e) {
-            alert('Включите JSON сервер');
-        }
+    private createView() {
+        const garageWrapper: HTMLElement = new CreateElement({
+            tag: 'div',
+            cssClasses: ['wrapperGarage'],
+            event: {
+                type: 'click',
+                callback: this.removeWinnerMessage,
+            },
+        }).getElement();
+        const wrapperControl = new CreateElement({
+            tag: 'div',
+            cssClasses: ['wrapperControl'],
+        }).getElement();
+        const containerGarage = new CreateElement({
+            tag: 'div',
+            cssClasses: ['containerGarage'],
+        }).getElement();
+
+        const createCarBlock = new CreateCarBlock(this.createCarCallback.bind(this)).get();
+        const updateCarBlock = new UpdateCarBlock(this.updateCarCallback.bind(this)).get();
+        const controlsBtns = new ControlsBtns(
+            this.race.bind(this),
+            this.reset.bind(this),
+            this.generateCars.bind(this),
+        ).get();
+        const btnToWinners = new BtnToWinners(this.toWinners.bind(this)).get();
+        const containerGarageHeader = new ContainerGarageHeader().get();
+        const changePageBtns = new ChangePageBtns(this.nextPage.bind(this), this.prevPage.bind(this)).get();
+
+        wrapperControl.append(createCarBlock, updateCarBlock, controlsBtns);
+        garageWrapper.append(btnToWinners, wrapperControl, containerGarageHeader, containerGarage, changePageBtns);
+        document.body.append(garageWrapper);
     }
 
-    static nextAndPrevVisability(totalCars: string) {
-        if (parseInt(totalCars, 10) > (Garage.currentPage * Garage.carsPerPage)) {
+    private async getCars() {
+        const response: Response = await this.APIService.getCars(this.currentPage, this.carsPerPage);
+        const cars: getCarsResponse[] = await response.json();
+        const totalCars = response.headers.get('X-Total-Count') as string;
+        cars.forEach((car) => {
+            const createCar = new CreateCar();
+            createCar.createCar(
+                car.name,
+                car.color,
+                car.id as number,
+                this.selectCar.bind(this),
+                this.deleteCarCallback.bind(this),
+                this.startCarCallback.bind(this),
+                this.stopCarCallback.bind(this),
+            );
+        });
+        this.nextAndPrevVisability(totalCars);
+        this.setCarCount(totalCars);
+    }
+
+    private nextAndPrevVisability(totalCars: string) {
+        if (parseInt(totalCars, 10) > this.currentPage * this.carsPerPage) {
             document.querySelector('.nextPage')?.classList.remove('inactive');
         } else {
             document.querySelector('.nextPage')?.classList.add('inactive');
         }
-        if (Garage.currentPage > 1) {
+        if (this.currentPage > 1) {
             document.querySelector('.previousPage')?.classList.remove('inactive');
         } else {
             document.querySelector('.previousPage')?.classList.add('inactive');
         }
     }
 
-    static async createCarCallback() {
+    private async createCarCallback() {
         const carNameInput = document.querySelector('.inputCarNameCreate') as HTMLInputElement;
         const carColorInput = document.querySelector('.inputColorCreate') as HTMLInputElement;
         if (carNameInput.value === '') {
@@ -63,36 +108,45 @@ class Garage {
             name: carNameInput.value,
             color: carColorInput.value,
         };
-        Garage.createCar(car);
+        this.createCar(car);
         carNameInput.value = '';
     }
 
-    static async createCar(car: getCarsResponse) {
-        const response = await Garage.APIService.createCar(car);
+    private async createCar(car: getCarsResponse) {
+        const response = await this.APIService.createCar(car);
         const carResp: getCarsResponse = await response.json();
-        if (document.querySelector('.containerGarage')?.childElementCount !== Garage.carsPerPage) {
-            CreateViewGarage.createCar(carResp.name, carResp.color, carResp.id as number);
+        if (document.querySelector('.containerGarage')?.childElementCount !== this.carsPerPage) {
+            const createCar = new CreateCar();
+            createCar.createCar(
+                carResp.name,
+                carResp.color,
+                carResp.id as number,
+                this.selectCar.bind(this),
+                this.deleteCarCallback.bind(this),
+                this.startCarCallback.bind(this),
+                this.stopCarCallback.bind(this),
+            );
         }
 
         let carCount = ((document.querySelector('.countCar') as HTMLElement).textContent as string).slice(2, -2);
         carCount = (parseInt(carCount, 10) + 1).toString();
-        Garage.setCarCount(carCount);
+        this.setCarCount(carCount);
 
-        Garage.nextAndPrevVisability(carCount);
+        this.nextAndPrevVisability(carCount);
     }
 
-    static async deleteCarCallback(event: Event) {
+    private async deleteCarCallback(event: Event) {
         const deleteBtn = event.target as HTMLButtonElement;
         const carBlock = deleteBtn.closest('.carBlock') as HTMLElement;
-        await Garage.APIService.deleteCar(carBlock.classList[1]);
-        Garage.APIService.removeWinner(carBlock.classList[1]);
+        await this.APIService.deleteCar(carBlock.classList[1]);
+        this.APIService.removeWinner(carBlock.classList[1]);
         carBlock.remove();
 
-        Garage.cleanGarage();
-        Garage.getCars();
+        this.cleanGarage();
+        this.getCars();
     }
 
-    static async selectCar(event: Event) {
+    private async selectCar(event: Event) {
         const deleteBtn = event.target as HTMLButtonElement;
         const carBlock = deleteBtn.closest('.carBlock') as HTMLElement;
         const carId = carBlock.classList[1];
@@ -102,7 +156,7 @@ class Garage {
         updateCarBlock.classList.remove(updateCarBlock.classList[2]);
         updateCarBlock.classList.add(carId);
 
-        const car = await Garage.APIService.getCar(carId);
+        const car = await this.APIService.getCar(carId);
 
         const inputCarNameUpdate = document.querySelector('.inputCarNameUpdate') as HTMLInputElement;
         const carColorInput = document.querySelector('.inputColorUpdate') as HTMLInputElement;
@@ -111,7 +165,7 @@ class Garage {
         carColorInput.value = car.color;
     }
 
-    static async updateCarCallback(event: Event) {
+    private async updateCarCallback(event: Event) {
         const updateBtn = event.target as HTMLButtonElement;
         const carNameInput = document.querySelector('.inputCarNameUpdate') as HTMLInputElement;
         const carColorInput = document.querySelector('.inputColorUpdate') as HTMLInputElement;
@@ -123,14 +177,14 @@ class Garage {
             color: carColorInput.value,
         };
         const carId = updateBtn.closest('.wrapperUpdateCar')?.classList[2] as string;
-        await Garage.APIService.updateCar(carId, data);
+        await this.APIService.updateCar(carId, data);
 
-        Garage.cleanGarage();
-        Garage.getCars();
-        Garage.disableUpdateBlock();
+        this.cleanGarage();
+        this.getCars();
+        this.disableUpdateBlock();
     }
 
-    static disableUpdateBlock() {
+    private disableUpdateBlock() {
         const updateCarBlock = document.querySelector('.wrapperUpdateCar') as HTMLElement;
         const inputCarNameUpdate = document.querySelector('.inputCarNameUpdate') as HTMLInputElement;
         const carColorInput = document.querySelector('.inputColorUpdate') as HTMLInputElement;
@@ -141,73 +195,73 @@ class Garage {
         carColorInput.value = '#000000';
     }
 
-    static nextPage() {
-        Garage.currentPage += 1;
-        Garage.changePage();
+    private nextPage() {
+        this.currentPage += 1;
+        this.changePage();
     }
 
-    static prevPage() {
-        Garage.currentPage -= 1;
-        Garage.changePage();
+    private prevPage() {
+        this.currentPage -= 1;
+        this.changePage();
     }
 
-    static changePage() {
-        Garage.cleanGarage();
-        Garage.getCars();
-        Garage.setCurrentPage();
-        Garage.animationId.forEach((value, key) => {
+    private changePage() {
+        this.cleanGarage();
+        this.getCars();
+        this.setCurrentPage();
+        this.animationId.forEach((value, key) => {
             cancelAnimationFrame(value);
-            Garage.animationId.delete(key);
+            this.animationId.delete(key);
         });
     }
 
-    static disableChangePage() {
+    private disableChangePage() {
         const nextPage = document.querySelector('.nextPage') as HTMLElement;
-        const prevPage  = document.querySelector('.previousPage') as HTMLElement;
+        const prevPage = document.querySelector('.previousPage') as HTMLElement;
         nextPage.classList.add('inactive');
         prevPage.classList.add('inactive');
     }
 
-    static enableChangePage() {
+    private enableChangePage() {
         const carCount = ((document.querySelector('.countCar') as HTMLElement).textContent as string).slice(2, -2);
-        Garage.nextAndPrevVisability(carCount);
+        this.nextAndPrevVisability(carCount);
     }
 
-    static cleanGarage() {
+    private cleanGarage() {
         const garage = document.querySelector('.containerGarage') as HTMLElement;
         while (garage.firstChild) {
             garage.firstChild.remove();
         }
     }
 
-    static setCurrentPage() {
+    private setCurrentPage() {
         const pageNumber = document.querySelector('.pageNumber') as HTMLElement;
-        pageNumber.textContent = `Page #${Garage.currentPage}`;
+        pageNumber.textContent = `Page #${this.currentPage}`;
     }
 
-    static setCarCount(totalCars: string) {
+    private setCarCount(totalCars: string) {
         const countCar = document.querySelector('.countCar') as HTMLElement;
         countCar.textContent = `( ${totalCars} )`;
     }
 
-    static generateCars() {
+    private generateCars() {
         const cars = generateCarInstances(100);
         cars.forEach((car) => {
-            Garage.createCar(car);
+            this.createCar(car);
         });
     }
 
-    static async startCarCallback(event: Event) {
+    private async startCarCallback(event: Event) {
         const startBtn = event.target as HTMLElement;
         const carId = startBtn.closest('.carBlock')?.classList[1] as string;
         const carIcon = startBtn.closest('.carBlock')?.querySelector('.carIcon') as HTMLElement;
         const stopBtn = startBtn.closest('.carBlock')?.querySelector('.btnStop') as HTMLElement;
 
-        Garage.startCar(carIcon, carId, startBtn, stopBtn);
+        this.startCar(carIcon, carId, startBtn, stopBtn);
     }
 
-    static async startCar(carIcon: HTMLElement, carId: string, startBtn: HTMLElement, stopBtn: HTMLElement) {
-        const data: carParameters = await Garage.APIService.startEngine(carId);
+    private async startCar(carIcon: HTMLElement, carId: string, startBtn: HTMLElement, stopBtn: HTMLElement) {
+        const data: carParameters = await this.APIService.startEngine(carId);
         const duration = data.distance / data.velocity;
         const road = document.querySelector('.road') as HTMLElement;
         if (road === null) {
@@ -218,18 +272,17 @@ class Garage {
         startBtn.classList.add('inactive');
         stopBtn.classList.remove('inactive');
 
-        Garage.animationCar(carIcon, duration, endX, carId);
+        this.animationCar(carIcon, duration, endX, carId);
 
         try {
-            await Garage.APIService.checkEngine(carId);
-        }
-        catch(e) {
-            cancelAnimationFrame(Garage.animationId.get(carId) as number);
-            Garage.animationId.delete(carId);
+            await this.APIService.checkEngine(carId);
+        } catch (e) {
+            cancelAnimationFrame(this.animationId.get(carId) as number);
+            this.animationId.delete(carId);
         }
     }
 
-    static animationCar(car: HTMLElement, duration: number, endX: number, carId: string) {
+    private animationCar(car: HTMLElement, duration: number, endX: number, carId: string) {
         const startX = car.offsetLeft;
         let currentX = startX;
         let startTime = 0;
@@ -240,57 +293,57 @@ class Garage {
             if (diff > 20) {
                 diff = 16;
             }
-            const framesCount = (duration / diff);
+            const framesCount = duration / diff;
             const dx = (endX - startX) / framesCount;
             currentX += dx;
             car.setAttribute('style', `left: ${currentX}px`);
             if (currentX < endX) {
-                Garage.animationId.set(carId, requestAnimationFrame(step));
+                this.animationId.set(carId, requestAnimationFrame(step));
             }
-            if (currentX > endX && !Garage.isThereWinner) {
-                Garage.isThereWinner = true;
-                Garage.createWinnerBlock(carId);
-                Garage.setWinner(carId, duration);
+            if (currentX > endX && !this.isThereWinner) {
+                this.isThereWinner = true;
+                this.createWinnerBlock(carId);
+                this.setWinner(carId, duration);
             }
-        }
+        };
 
-        Garage.animationId.set(carId, requestAnimationFrame(step));
+        this.animationId.set(carId, requestAnimationFrame(step));
     }
 
-    static async setWinner(carId: string, duration: number) {
+    private async setWinner(carId: string, duration: number) {
         const winner: winnersResponse = {
-            id: parseInt(carId),
+            id: parseInt(carId, 10),
             wins: 1,
             time: Math.round(duration) / 1000,
-        }
-        
+        };
+
         try {
-           await Garage.APIService.createWinner(winner);
-        }
-        catch(e) {
-            const winnerInfo: winnersResponse = await Garage.APIService.getWinner(carId);
+            await this.APIService.createWinner(winner);
+        } catch (e) {
+            const winnerInfo: winnersResponse = await this.APIService.getWinner(carId);
             winnerInfo.wins += 1;
-            if ((Math.round(duration) / 1000) < winnerInfo.time) {
-                winnerInfo.time = (Math.round(duration) / 1000);
+            if (Math.round(duration) / 1000 < winnerInfo.time) {
+                winnerInfo.time = Math.round(duration) / 1000;
             }
-            Garage.APIService.updateWinner(winnerInfo);
+            this.APIService.updateWinner(winnerInfo);
         }
     }
 
-    static async createWinnerBlock(carId: string) {
-        const car = await Garage.APIService.getCar(carId);
-        CreateViewGarage.createWinnerMessage(car.name);
+    private async createWinnerBlock(carId: string) {
+        const car = await this.APIService.getCar(carId);
+        const winnerMessage = new WinnerMessage();
+        winnerMessage.createWinnerMessage(car.name);
         setTimeout(() => {
             document.querySelector('.winnerMessage')?.remove();
         }, 3000);
     }
 
-    static race(event: Event) {
+    private race(event: Event) {
         const raceBtn = event.target as HTMLElement;
         raceBtn.classList.add('inactive');
         document.querySelector('.btnReset')?.classList.remove('inactive');
-        Garage.disableChangePage();
-        Garage.isThereWinner = false;
+        this.disableChangePage();
+        this.isThereWinner = false;
         const garage = document.querySelector('.containerGarage') as HTMLElement;
         const cars = garage.querySelectorAll('.carBlock');
         cars.forEach((car) => {
@@ -298,25 +351,25 @@ class Garage {
             const carId = car.classList[1];
             const startBtn = car.querySelector('.btnStart') as HTMLElement;
             const stopBtn = startBtn.closest('.carBlock')?.querySelector('.btnStop') as HTMLElement;
-            Garage.startCar(carIcon, carId, startBtn, stopBtn);
+            this.startCar(carIcon, carId, startBtn, stopBtn);
         });
     }
 
-    static async stopCarCallback(event: Event) {
+    private async stopCarCallback(event: Event) {
         const stopBtn = event.target as HTMLElement;
         const carId = stopBtn.closest('.carBlock')?.classList[1] as string;
         const carIcon = stopBtn.closest('.carBlock')?.querySelector('.carIcon') as HTMLElement;
         const startBtn = stopBtn.closest('.carBlock')?.querySelector('.btnStart') as HTMLElement;
 
-        Garage.stopCar(carIcon, carId, startBtn, stopBtn);
+        this.stopCar(carIcon, carId, startBtn, stopBtn);
     }
 
-    static async stopCar(carIcon: HTMLElement, carId: string, startBtn: HTMLElement, stopBtn: HTMLElement) {
-        const resp: carParameters = await Garage.APIService.stopEngine(carId);
+    private async stopCar(carIcon: HTMLElement, carId: string, startBtn: HTMLElement, stopBtn: HTMLElement) {
+        const resp: carParameters = await this.APIService.stopEngine(carId);
         if (resp.velocity === 0) {
-            if (Garage.animationId.has(carId)) {
-                cancelAnimationFrame(Garage.animationId.get(carId) as number);
-                Garage.animationId.delete(carId);
+            if (this.animationId.has(carId)) {
+                cancelAnimationFrame(this.animationId.get(carId) as number);
+                this.animationId.delete(carId);
             }
             carIcon.setAttribute('style', 'left: 80px');
             startBtn.classList.remove('inactive');
@@ -324,38 +377,37 @@ class Garage {
         }
     }
 
-    static reset(event: Event) {
+    private reset(event: Event) {
         const resetBtn = event.target as HTMLElement;
         resetBtn.classList.add('inactive');
         document.querySelector('.btnRace')?.classList.remove('inactive');
-        Garage.enableChangePage();
+        this.enableChangePage();
         const garage = document.querySelector('.containerGarage') as HTMLElement;
         const cars = garage.querySelectorAll('.carBlock');
-        Garage.isThereWinner = true;
+        this.isThereWinner = true;
         cars.forEach((car) => {
             const carIcon = car.querySelector('.carIcon') as HTMLElement;
             const carId = car.classList[1];
             const startBtn = car.querySelector('.btnStart') as HTMLElement;
             const stopBtn = startBtn.closest('.carBlock')?.querySelector('.btnStop') as HTMLElement;
-            Garage.stopCar(carIcon, carId, startBtn, stopBtn);
+            this.stopCar(carIcon, carId, startBtn, stopBtn);
         });
     }
 
-    static removeWinnerMessage() {
+    private removeWinnerMessage() {
         document.querySelector('.winnerMessage')?.remove();
     }
 
-    static remove() {
+    private remove() {
         const wrapper = document.querySelector('.wrapperGarage') as HTMLElement;
         wrapper.classList.add('hidden');
     }
 
-    static toWinners() {
-        Garage.remove();
+    private toWinners() {
+        this.remove();
+        Winners.toWinners();
         const wrapper = document.querySelector('.winnersWrapper') as HTMLElement;
         wrapper.classList.remove('hidden');
-        Winners.cleanTable();
-        Winners.getWinners();
     }
 }
 

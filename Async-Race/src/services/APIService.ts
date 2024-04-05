@@ -1,6 +1,6 @@
-import carParameters from "../interfaces/carParameters";
-import getCarsResponse from "../interfaces/getCarsResponse";
-import winnersResponse from "../interfaces/winnersResponse";
+import carParameters from '../interfaces/carParameters';
+import getCarsResponse from '../interfaces/getCarsResponse';
+import winnersResponse from '../interfaces/winnersResponse';
 
 class APIService {
     private url: string = 'http://127.0.0.1:3000';
@@ -12,7 +12,9 @@ class APIService {
     };
 
     public async getCars(currentPage: number, carsPerPage: number) {
-        const response: Response = await fetch(`${this.url}${this.options.garage}?_page=${currentPage}&_limit=${carsPerPage}`);
+        const response: Response = await fetch(
+            `${this.url}${this.options.garage}?_page=${currentPage}&_limit=${carsPerPage}`,
+        );
         return response;
     }
 
@@ -75,7 +77,9 @@ class APIService {
     }
 
     public async getWinners(currentPage: number, winnersPerPage: number, sort: string, order: string) {
-        const response: Response = await fetch(`${this.url}${this.options.winners}?_page=${currentPage}&_limit=${winnersPerPage}&_sort=${sort}&_order=${order}`);
+        const response: Response = await fetch(
+            `${this.url}${this.options.winners}?_page=${currentPage}&_limit=${winnersPerPage}&_sort=${sort}&_order=${order}`,
+        );
         return response;
     }
 

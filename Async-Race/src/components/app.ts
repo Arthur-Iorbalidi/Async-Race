@@ -3,8 +3,10 @@ import Winners from './Winners/winners';
 
 class App {
     public start() {
-        Garage.create();
-        Winners.create();
+        const garage = new Garage();
+        garage.create();
+        const winners = new Winners();
+        winners.create();
     }
 }
 

@@ -1,6 +1,6 @@
 interface carParameters {
-    velocity: number,
-    distance: number,
+    velocity: number;
+    distance: number;
 }
 
 export default carParameters;
