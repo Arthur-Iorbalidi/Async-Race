@@ -1,0 +1,178 @@
+.wrapperGarage {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #292929;
+    padding: 10px;
+    &.hidden {
+        display: none;
+    }
+    .btnToWinners {
+        color: #000;
+        display: inline-block;
+        padding: 5px 20px;
+        background-color: #c6f0b7;
+        font-size: 2rem;
+        border-radius: 5px;
+        font-family: Arial;
+        text-decoration: none;
+    }
+    .wrapperControl {
+        max-width: 470px;
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        .wrapperOption {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            .inputCarName {
+                font-size: 2rem;
+                padding: 5px;
+            }
+            .inputColor {
+                height: 37px;
+            }
+            .btn {
+                width: 100px;
+                font-size: 2rem;
+                padding: 5px;
+                background-color: #a9dded;
+            }
+            &.inactive {
+                pointer-events: none;
+                opacity: 0.5;
+            }
+        }
+        .wrapperBtns {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            .btn {
+                font-size: 2rem;
+                padding: 5px;
+                flex: 1;
+                background-color: #a9dded;
+            }
+            .btnGenerate {
+                flex: 2;
+            }
+            .inactive {
+                pointer-events: none;
+                opacity: 0.4;
+            }
+        }
+    }
+    .containerGarageHeader {
+        margin-top: 50px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        .headerGarage {
+            color: #fff;
+            font-size: 3rem;
+            .countCar {
+                font-size: 3rem;
+            }
+        }
+        .pageNumber {
+            color: #fff;
+            font-size: 3rem;
+        }
+    }
+    .containerGarage {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        .carBlock {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            .wrapperBtnsCar {
+                display: flex;
+                gap: 10px;
+                .btn {
+                    width: 100px;
+                    padding: 2px 0;
+                    font-size: 1.5rem;
+                    border-radius: 5px;
+                    background-color: #a9dded;
+                }
+                .carNameSpan {
+                    font-size: 2rem;
+                    color: #fff;
+                }
+            }
+            .startAndStop {
+                position: absolute;
+                display: flex;
+                gap: 5px;
+                .btn {
+                    font-size: 2rem;
+                    padding: 3px 8px;
+                    border-radius: 5px;
+                }
+                .btnStart {
+                    background-color: #51d5ba;
+                }
+                .btnStop {
+                    background-color: #ff9c9c;
+                }
+                .inactive {
+                    pointer-events: none;
+                    opacity: 0.4;
+                }
+            }
+            .road {
+                height: 53px;
+                position: relative;
+                display: flex;
+                border-bottom: 3px dashed #fff;
+                .carIcon {
+                    position: absolute;
+                    display: flex;
+                    align-items: end;
+                    padding-bottom: 3px;
+                    bottom: 0;
+                    left: 80px;
+                }
+                .flagIcon {
+                    position: absolute;
+                    right: 100px;
+                }
+            }
+        }
+    }
+    .changePageBtns {
+        margin-top: 40px;
+        display: flex;
+        gap: 10px;
+        .btn {
+            width: 100px;
+            padding: 7px 0;
+            font-size: 1.5rem;
+            border-radius: 5px;
+            background-color: #c6f0b7;
+        }
+        .inactive {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    }
+    .winnerMessage {
+        padding: 30px 20px;
+        position: absolute;
+        left: 50vw;
+        top: 50vh;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 700px;
+        font-size: 4rem;
+        font-weight: bold;
+        color: #a08667;
+        background-color: #dedede;
+        border-radius: 15px;
+        text-align: center;
+    }
+}
