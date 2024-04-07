@@ -7,10 +7,14 @@
         display: none;
     }
     .btnToWinners {
+        color: #000;
+        display: inline-block;
         padding: 5px 20px;
         background-color: #c6f0b7;
         font-size: 2rem;
         border-radius: 5px;
+        font-family: Arial;
+        text-decoration: none;
     }
     .wrapperControl {
         max-width: 470px;

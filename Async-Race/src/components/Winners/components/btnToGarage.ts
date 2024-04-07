@@ -3,23 +3,20 @@ import CreateElement from '../../../utils/createElement';
 class BtnToGarage {
     private element: HTMLElement;
 
-    constructor(toGarageCallback: () => void) {
-        this.element = this.createBtnToGarage(toGarageCallback);
+    constructor() {
+        this.element = this.createBtnToGarage();
     }
 
     public get() {
         return this.element;
     }
 
-    private createBtnToGarage(toGarageCallback: () => void): HTMLElement {
+    private createBtnToGarage(): HTMLElement {
         const btnToGarage = new CreateElement({
-            tag: 'button',
+            tag: 'a',
             content: 'To Garage',
             cssClasses: ['btnToGarage'],
-            event: {
-                type: 'click',
-                callback: toGarageCallback,
-            },
+            attributes: { href: "/garage" },
         }).getElement();
         return btnToGarage;
     }

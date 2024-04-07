@@ -14,17 +14,20 @@ import CreateCarBlock from './components/createCarBlock';
 import UpdateCarBlock from './components/updateCarBlock';
 import WinnerMessage from './components/winnerMessage';
 import './garage.scss';
+import StoreGarage from './storeGarage';
 
 class Garage {
-    private APIService = new APIService();
-
-    private currentPage = 1;
+    private APIService: APIService;
 
     private carsPerPage: number = 7;
 
     private animationId: Map<string, number> = new Map();
 
     private isThereWinner: boolean = true;
+
+    constructor(apiService: APIService) {
+        this.APIService = apiService;
+    }
 
     public create(): void {
         this.createView();
@@ -56,8 +59,8 @@ class Garage {
             this.reset.bind(this),
             this.generateCars.bind(this),
         ).get();
-        const btnToWinners = new BtnToWinners(this.toWinners.bind(this)).get();
-        const containerGarageHeader = new ContainerGarageHeader().get();
+        const btnToWinners = new BtnToWinners().get();
+        const containerGarageHeader = new ContainerGarageHeader(StoreGarage.currentPage).get();
         const changePageBtns = new ChangePageBtns(this.nextPage.bind(this), this.prevPage.bind(this)).get();
 
         wrapperControl.append(createCarBlock, updateCarBlock, controlsBtns);
@@ -66,7 +69,7 @@ class Garage {
     }
 
     private async getCars() {
-        const response: Response = await this.APIService.getCars(this.currentPage, this.carsPerPage);
+        const response: Response = await this.APIService.getCars(StoreGarage.currentPage, this.carsPerPage);
         const cars: getCarsResponse[] = await response.json();
         const totalCars = response.headers.get('X-Total-Count') as string;
         cars.forEach((car) => {
@@ -86,12 +89,12 @@ class Garage {
     }
 
     private nextAndPrevVisability(totalCars: string) {
-        if (parseInt(totalCars, 10) > this.currentPage * this.carsPerPage) {
+        if (parseInt(totalCars, 10) > StoreGarage.currentPage * this.carsPerPage) {
             document.querySelector('.nextPage')?.classList.remove('inactive');
         } else {
             document.querySelector('.nextPage')?.classList.add('inactive');
         }
-        if (this.currentPage > 1) {
+        if (StoreGarage.currentPage > 1) {
             document.querySelector('.previousPage')?.classList.remove('inactive');
         } else {
             document.querySelector('.previousPage')?.classList.add('inactive');
@@ -196,12 +199,12 @@ class Garage {
     }
 
     private nextPage() {
-        this.currentPage += 1;
+        StoreGarage.currentPage += 1;
         this.changePage();
     }
 
     private prevPage() {
-        this.currentPage -= 1;
+        StoreGarage.currentPage -= 1;
         this.changePage();
     }
 
@@ -236,7 +239,7 @@ class Garage {
 
     private setCurrentPage() {
         const pageNumber = document.querySelector('.pageNumber') as HTMLElement;
-        pageNumber.textContent = `Page #${this.currentPage}`;
+        pageNumber.textContent = `Page #${StoreGarage.currentPage}`;
     }
 
     private setCarCount(totalCars: string) {
@@ -286,12 +289,14 @@ class Garage {
         const startX = car.offsetLeft;
         let currentX = startX;
         let startTime = 0;
+        const maxPermissibleDiff = 20;
+        const baseDiff = 16;
 
         const step = (currentTime: number) => {
             let diff = currentTime - startTime;
             startTime = currentTime;
-            if (diff > 20) {
-                diff = 16;
+            if (diff > maxPermissibleDiff) {
+                diff = baseDiff;
             }
             const framesCount = duration / diff;
             const dx = (endX - startX) / framesCount;
@@ -396,18 +401,6 @@ class Garage {
 
     private removeWinnerMessage() {
         document.querySelector('.winnerMessage')?.remove();
-    }
-
-    private remove() {
-        const wrapper = document.querySelector('.wrapperGarage') as HTMLElement;
-        wrapper.classList.add('hidden');
-    }
-
-    private toWinners() {
-        this.remove();
-        Winners.toWinners();
-        const wrapper = document.querySelector('.winnersWrapper') as HTMLElement;
-        wrapper.classList.remove('hidden');
     }
 }
 

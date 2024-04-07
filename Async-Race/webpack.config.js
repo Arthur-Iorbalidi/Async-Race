@@ -28,6 +28,9 @@ const baseConfig = {
             },
         ],
     },
+    devServer: {
+        historyApiFallback: true,
+    },
     resolve: {
         extensions: ['.ts', '.tsx', '.js'],
     },

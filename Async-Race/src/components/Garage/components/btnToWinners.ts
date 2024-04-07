@@ -3,23 +3,20 @@ import CreateElement from '../../../utils/createElement';
 class BtnToWinners {
     private element: HTMLElement;
 
-    constructor(toWinnerCallback: () => void) {
-        this.element = this.createBtnToWinners(toWinnerCallback);
+    constructor() {
+        this.element = this.createBtnToWinners();
     }
 
     public get() {
         return this.element;
     }
 
-    private createBtnToWinners(toWinnerCallback: () => void): HTMLElement {
+    private createBtnToWinners(): HTMLElement {
         const btnToWinners = new CreateElement({
-            tag: 'button',
+            tag: 'a',
             content: 'To Winners',
             cssClasses: ['btnToWinners'],
-            event: {
-                type: 'click',
-                callback: toWinnerCallback,
-            },
+            attributes: { href: "/winners" },
         }).getElement();
         return btnToWinners;
     }

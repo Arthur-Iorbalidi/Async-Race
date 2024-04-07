@@ -3,15 +3,15 @@ import CreateElement from '../../../utils/createElement';
 class ContainerGarageHeader {
     private element: HTMLElement;
 
-    constructor() {
-        this.element = this.createContainerGarageHeader();
+    constructor(currentPage: number) {
+        this.element = this.createContainerGarageHeader(currentPage);
     }
 
     public get() {
         return this.element;
     }
 
-    private createContainerGarageHeader(): HTMLElement {
+    private createContainerGarageHeader(currentPage: number): HTMLElement {
         const containerGarageHeader = new CreateElement({
             tag: 'div',
             cssClasses: ['containerGarageHeader'],
@@ -28,7 +28,7 @@ class ContainerGarageHeader {
         }).getElement();
         const page = new CreateElement({
             tag: 'h2',
-            content: 'Page #1',
+            content: `Page #${currentPage}`,
             cssClasses: ['pageNumber'],
         }).getElement();
         headerGarage.append(countCar);

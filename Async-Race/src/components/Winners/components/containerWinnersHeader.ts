@@ -3,15 +3,15 @@ import CreateElement from '../../../utils/createElement';
 class ContainerWinnersHeader {
     private element: HTMLElement;
 
-    constructor() {
-        this.element = this.createContainerWinnersHeader();
+    constructor(currentPage: number) {
+        this.element = this.createContainerWinnersHeader(currentPage);
     }
 
     public get() {
         return this.element;
     }
 
-    private createContainerWinnersHeader(): HTMLElement {
+    private createContainerWinnersHeader(currentPage: number): HTMLElement {
         const containerWinnersHeader = new CreateElement({
             tag: 'div',
             cssClasses: ['containerWinnersHeader'],
@@ -28,7 +28,7 @@ class ContainerWinnersHeader {
         }).getElement();
         const page = new CreateElement({
             tag: 'h2',
-            content: 'Page #1',
+            content: `Page #${currentPage}`,
             cssClasses: ['pageNumberWinners'],
         }).getElement();
 
